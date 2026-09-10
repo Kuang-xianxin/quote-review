@@ -1,0 +1,27 @@
+name: Incorrect or missing investigation signal
+description: Share a synthetic reproduction and an expected evidence-based result.
+body:
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Synthetic evidence
+      description: Remove credentials and private incident details. Include source types and timestamps where relevant.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result and supporting evidence
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / OS / project version

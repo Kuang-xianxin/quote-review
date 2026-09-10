@@ -1,0 +1,7 @@
+2026-09-09T11:00:00Z INFO agent.run started trace=run-119 task=lookup-7
+2026-09-09T11:00:01Z INFO pool.acquire trace=run-119 active=20 limit=20
+2026-09-09T11:00:03Z WARN cancel_requested trace=run-119 reason=client_disconnect
+2026-09-09T11:00:04Z INFO task.heartbeat trace=run-119 task=lookup-7
+2026-09-09T11:00:05Z ERROR pool exhausted waiting=12 active=20 limit=20 trace=run-120
+2026-09-09T11:00:08Z ERROR request timeout trace=run-120
+2026-09-09T11:00:10Z INFO task.heartbeat trace=run-119 task=lookup-7

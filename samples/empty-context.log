@@ -1,0 +1,5 @@
+2026-09-09T10:10:00Z INFO agent.run started trace=run-081 tenant=demo
+2026-09-09T10:10:01Z INFO retrieve query="refund policy" tenant=demo index=policy-v3 hits=0
+2026-09-09T10:10:01Z INFO context.assemble trace=run-081 context_chars=0
+2026-09-09T10:10:02Z INFO llm.generate trace=run-081 status=completed tokens=180
+2026-09-09T10:10:03Z ERROR answer.validate trace=run-081 citation_count=0 reason=missing_evidence
