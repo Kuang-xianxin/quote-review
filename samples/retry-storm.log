@@ -1,8 +1,0 @@
-2026-09-09T09:41:02Z INFO agent.run started trace=run-042 model=local-test
-2026-09-09T09:41:03Z INFO search.documents completed trace=run-042 hits=8
-2026-09-09T09:41:04Z WARN llm.request failed trace=run-042 status=429 Retry-After=30
-2026-09-09T09:41:04Z WARN llm.request retry trace=run-042 attempt=2 delay_ms=0
-2026-09-09T09:41:04Z WARN llm.request failed trace=run-042 status=429
-2026-09-09T09:41:04Z WARN llm.request retry trace=run-042 attempt=3 delay_ms=0
-2026-09-09T09:41:05Z ERROR agent.run deadline exceeded trace=run-042 budget_ms=3000
-2026-09-09T09:41:06Z INFO unrelated.health status=200 trace=health-018

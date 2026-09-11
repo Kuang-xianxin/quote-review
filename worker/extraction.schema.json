@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "supplier": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 160
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "shipping_note": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 600
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "items": {
+      "minItems": 1,
+      "maxItems": 40,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "sku": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{1,9}(?:\\.[0-9]{1,6})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "price_unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "each",
+                  "pack"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pack_size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "moq": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "moq_unit": {
+            "default": null,
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "each",
+                  "pack"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lead_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 730
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_ids": {
+            "minItems": 1,
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^L[0-9]{1,5}$"
+            }
+          }
+        },
+        "required": [
+          "description",
+          "sku",
+          "currency",
+          "unit_price",
+          "price_unit",
+          "pack_size",
+          "moq",
+          "moq_unit",
+          "lead_days",
+          "source_ids"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "supplier",
+    "shipping_note",
+    "items"
+  ],
+  "additionalProperties": false
+}

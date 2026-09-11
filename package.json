@@ -1,6 +1,6 @@
 {
-  "name": "incident-weave",
-  "version": "0.1.0",
+  "name": "quote-review",
+  "version": "0.2.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -8,24 +8,27 @@
   "scripts": {
     "install:ci": "npm ci",
     "dev": "vite --host 127.0.0.1 --port 5173",
-    "build": "tsc --noEmit && vite build",
-    "start": "vite preview --host 127.0.0.1 --port 5173",
-    "lint": "eslint app/page.tsx app/main.tsx core tests scripts/investigate.ts scripts/evaluate.ts",
+    "build": "node scripts/build-quotes.mjs",
+    "start": "node --import tsx server/local.ts",
+    "lint": "eslint app/quotes.tsx app/main.tsx core/quotes.ts server db tests/quotes.test.ts",
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "eval": "tsx scripts/evaluate.ts",
-    "investigate": "tsx scripts/investigate.ts",
-    "format:check": "prettier --check app/page.tsx app/main.tsx app/globals.css core tests scripts/investigate.ts scripts/evaluate.ts docs README.md"
+    "eval": "python worker/benchmark.py",
+    "format:check": "prettier --check app/quotes.tsx app/main.tsx app/quotes.css core/quotes.ts server db tests/quotes.test.ts README.md README.zh-CN.md docs",
+    "backend": "node --import tsx server/local.ts",
+    "test:quotes": "tsx --test tests/quotes.test.ts"
   },
   "dependencies": {
-    "@mlc-ai/web-llm": "^0.2.85",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
+    "decimal.js": "^10.6.0",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.31.0",
     "radix-ui": "^1.6.7",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "tailwind-merge": "3.6.0"
+    "tailwind-merge": "3.6.0",
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
@@ -34,6 +37,8 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
+    "drizzle-kit": "^0.31.10",
+    "esbuild": "^0.28.2",
     "eslint": "9.39.4",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "14.0.0",
@@ -46,6 +51,6 @@
     "vite": "8.0.13"
   },
   "type": "module",
-  "description": "Local-first AI incident investigation with traceable evidence and no paid APIs",
+  "description": "Review bilingual supplier quotations with local AI, source evidence and comparable unit prices",
   "license": "MIT"
 }

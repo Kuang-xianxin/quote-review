@@ -1,11 +1,11 @@
-name: Incorrect or missing investigation signal
+name: Incorrect or missing quotation field
 description: Share a synthetic reproduction and an expected evidence-based result.
 body:
   - type: textarea
     id: evidence
     attributes:
       label: Synthetic evidence
-      description: Remove credentials and private incident details. Include source types and timestamps where relevant.
+      description: Remove credentials and private supplier details. Include file types and source line positions where relevant.
       render: text
     validations:
       required: true

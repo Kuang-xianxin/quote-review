@@ -67,3 +67,13 @@ next-env.d.ts
 !/components/ui/checkbox.tsx
 !/components/ui/alert-dialog.tsx
 *.tsbuildinfo
+/.runtime/
+/.data/
+/.venv/
+__pycache__/
+*.pyc
+!/db/
+!/drizzle/
+!/drizzle.config.ts
+
+!.env.example

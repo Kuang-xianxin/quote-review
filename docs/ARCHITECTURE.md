@@ -1,53 +1,41 @@
-# Architecture and design decisions
+# Architecture
 
-**English** · [简体中文](ARCHITECTURE.zh-CN.md)
-
-Incident Weave is a static application with a portable TypeScript analysis core. There is no evidence-processing server. UI, command line, evaluation and agent-tool adapters call the same implementation.
+A purchasing operator creates a private comparison, uploads original files and reviews model-proposed fields before comparison. The API persists authoritative data; browser storage holds only language preference.
 
 ```mermaid
 flowchart LR
-  A[Local logs + runbook] --> B[Bounded ingest + redaction]
-  B --> C[Stable evidence IDs]
-  C --> D[Diagnostic rules + trace correlation]
-  C --> E[BM25 retrieval]
-  D --> F[Observed signals + next checks]
-  E --> G[Optional browser worker / local model]
-  G --> H[JSON shape + exact citation gate]
-  H --> I[Unconfirmed hypotheses]
-  F --> J[Inspectable report / Markdown / JSON]
-  I --> J
+  U[Bilingual browser] --> A[HTTP API]
+  A --> D[(D1 or local SQLite)]
+  A --> F[(R2 or local files)]
+  W[Owned Python worker] -->|claim / lease / complete over HTTPS| A
+  W --> P[Isolated document parser]
+  W --> M[Owned CPU model process]
 ```
 
-## Why these boundaries?
+`server/api.ts` is a Fetch API handler. `server/worker.ts` supplies the hosted entrypoint; `server/local.ts` adapts Node HTTP. `server/local-platform.ts` implements the small D1/R2-compatible interface with native SQLite and a directory. Local migrations run before serving; cloud migrations are packaged for deployment.
 
-**Evidence first.** Logs and runbooks have different roles. A runbook saying “if a 429 occurs” must not count as an observed 429. Findings use only log sources; retrieval can return both. Every evidence record carries its source name, physical line number and an ID unique within the bundle.
+## Data and state transitions
 
-**Lexical retrieval is intentional.** BM25 is cheap, reproducible, private and requires no embedding downloads. CJK bigrams support lexical Chinese matching. It does not understand paraphrases. Results use deterministic tie-breaking and reserve room for relevant sources before filling by score. We do not label this hybrid semantic search.
+Sessions store only a hash of the random HttpOnly, SameSite cookie, with a seven-day expiry. Projects belong to sessions; document bytes live in blob storage. Every project, export, audit and source read checks ownership. A bearer secret authenticates the compute worker independently.
 
-**Limited correlation beats confident speculation.** Continued work after cancellation requires the same source, a matching trace/run identifier and a later parsed ISO timestamp. An unrelated heartbeat or a line merely placed later in a file is insufficient. Multiple hosts must be normalized before cross-host correlation; v0.1 deliberately does not infer it.
+Uploads are SHA-256 identified and deduplicated within a project. The atomic insert enforces 6 documents per project, 200 stored documents globally and 16 queued/leased jobs. Anonymous sessions and projects are bounded. These limits provide demo capacity bounds, not a complete abuse-prevention or tenant billing system.
 
-**Generated output has two gates.** Model output must fit a bounded shape, and every citation must reference a selected, non-quarantined evidence line with an exact substring of at least eight characters. This rejects invented citations but cannot prove semantic entailment. Hypotheses never become confirmed observations through this gate.
+Jobs move `queued -> leased -> completed/failed/cancelled`. A single conditional UPDATE RETURNING claims work, creates a new token and increments attempts. Leases last 90 seconds and renew every 15 seconds. Expired leases can be reclaimed, up to 3 attempts. Every result write checks the token, state and deadline. Cancelled/deleted work cannot write a late result. Explicit retry can requeue failed work.
 
-**Cancellation has an owner.** Each inference attempt owns one Worker. Cancel, worker error, invalid response, successful completion or the ten-minute total budget terminates that worker. The earlier evidence report is immutable from the model adapter's perspective. The UI prevents competing runs and ignores stale completion after a view change.
+The worker downloads and verifies the exact file hash. Parsing runs in an owned subprocess with a 20-second timeout; POSIX additionally applies a 384 MB address-space limit (Windows does not). A separate owned llama-server process runs the model locally. Job failure, lost lease or cancellation stops that model process, instead of merely cancelling the HTTP client. Overall job deadline: 270 seconds. The worker can restart inference for the next job.
 
-**No background billing.** The public build is static. Importing evidence, retrieval, diagnostics and report export do not need a server or model. Model download requires an explicit click, and generation happens on the visitor's GPU. There is no fallback to a paid API.
+The original extraction and source lines remain recorded. Reviews are separate snapshots containing editable items and supplier/terms. A version-checked update and audit insertion share a transaction, so concurrent review saves return 409 instead of overwriting one another. Added manual rows have no model citation; users must inspect the source themselves.
 
-**Language is presentation, not evidence rewriting.** `core/i18n.ts` selects a locale and translates application-owned copy/templates. `core/presentation.ts` localizes report narration without changing source names, physical lines, evidence IDs, exact quotes, user input, machine categories, digests or model claims. Switching languages keeps the current investigation. A new model run requests the chosen language while requiring verbatim evidence quotes; language compliance is not guaranteed. Unknown runtime diagnostics remain verbatim. JSON exports add a `language` field for the narration.
+## Comparison contract
 
-**Reproducible artifacts.** The SHA-256 digest covers the redacted evidence records and redacted question. Identical inputs have the same digest even though each run has a new UUID/timestamp. It is an integrity fingerprint, not an authenticity signature. JSON contains observations, selected context, exact quotes and measured stage times.
+Only rows explicitly marked reviewed participate. Grouping uses the exact human-supplied comparison key plus currency. Decimal arithmetic divides a pack price by an explicit pack size. Unknown price/unit/currency produces no normalized price. MOQ has its own unit and is never inferred from the price unit. Values remain strings through the financial calculation; display rounding is eight decimal places. CSV labels prices as excluding freight/tax and escapes formula-like cells.
 
-## Modules
+Source-ID validation and number/unit checks catch some errors. They do not prove semantic grounding, establish equivalent products or prevent every prompt injection. There are no model tools, shell execution, remote URL fetching or order placement.
 
-| File                                      | Responsibility                                                                               |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `core/engine.ts`                          | Input limits, redaction, BM25, diagnostic rules, correlation, citation validation, reporting |
-| `core/local-ai.ts`                        | Worker lifecycle, cancellation, wall-clock budget, validation of returned JSON               |
-| `core/model.worker.ts`                    | Load the open model and perform one local inference                                          |
-| `core/fixtures.ts` / `core/evaluation.ts` | Synthetic scenarios and a deterministic evaluation runner                                    |
-| `core/webmcp.ts`                          | Optional tools with the same input validation and visible state transition                   |
-| `app/page.tsx`                            | Input, run state, evidence inspection, local history and exports                             |
-| `scripts/investigate.ts`                  | Network-free CLI adapter                                                                     |
+## Deployment and operations
 
-## Extensions worth pursuing
+Hosted API: Sites-managed Cloudflare Worker, D1 binding `DB`, R2 binding `QUOTES`. `.openai/hosting.json` declares only logical bindings. Runtime secret `WORKER_TOKEN` must match the compute worker's `QUOTE_WORKER_TOKEN` or token file. Do not put it in browser variables, source or a URL. The model stays on the operator's computer; no paid model endpoint is called.
 
-Add a concrete failing fixture before extending behavior. Useful next steps include explicit OpenTelemetry span ingestion, trace-aware retrieval ranking, a measured local semantic retriever, an evaluated stronger-model option, and conflict detection between runbooks and observed configuration. These are future work, not implemented features.
+The local server binds loopback by default. A hosted worker needs only outbound HTTPS access; no tunnel or inbound desktop port is required. Hardware offline means queued extraction, not lost reviews. `/api/health` reports database availability and the last model-worker heartbeat, not end-to-end model correctness.
+
+Deleting a comparison deletes blobs then metadata; a storage error retains a retryable record. Expired data is reaped in bounded batches before claims. If the worker is offline, expiry removes browser access but cleanup waits. For private business use, self-host, control worker access, add identity/team authorization and backup/restore policies before relying on this as a system of record.

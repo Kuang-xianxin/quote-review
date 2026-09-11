@@ -1,42 +1,27 @@
-# Validation record and limits
+# Validation scope
 
-**English** · [简体中文](VALIDATION.zh-CN.md)
+This release is being validated against the actual local API, parser subprocess, owned CPU model and public deployment. See `validation/model-regression.json` for full synthetic inputs, expected fields, actual model output, timing and mismatches. The smaller baseline model's failures remain in `validation/baseline-qwen2.5-1.5b.json`.
 
-Reference environment: Windows, Node.js 22.23.1, TypeScript 5.9.3. This record describes the v0.1 implementation, not a production service benchmark.
+The fixture corpus is small: bilingual samples, separate-product examples, independent MOQ units, ambiguous currency, an instruction-injection case, two-row CSV/XLSX and a text PDF. The first two examples informed prompt development; do not call them held-out. No real supplier data, adoption study or production-accuracy estimate is included.
 
-The bilingual update on 2026-09-11 passed 35 automated tests and all 14 deterministic fixture assertions. Both language homepages also passed React static rendering checks. See GitHub Actions for independent type checking, lint and production-build results. Static rendering is not browser interaction or GPU acceptance.
+API tests use real temporary SQLite and filesystem storage; only inference results are test doubles there. They verify private-session isolation, CSRF rejection, concurrent upload bounds/deduplication, exclusive claims, stale/cancelled completions, review conflicts and audit atomicity, deletion, expiry cleanup, decimal unit math and CSV safety. Parser tests cover text locations, tabular values, formulas, scans, oversized text and plain email.
 
-## Reproduce
+Native model timing excludes startup/download and measures the benchmark's parse-and-extract interval. CPU host: Intel i5-12400, about 25 GB RAM, 4 inference threads, Windows. The pinned model is Qwen3-4B-Q4_K_M; no remote inference API is used.
 
-```sh
-npm ci
-npm test
-npm run typecheck
-npm run lint
-npm run eval
-npm run build
-npm run investigate -- samples/retry-storm.log samples/retry-storm.md --json
-```
+No browser visual or interaction acceptance was performed. TypeScript/build and HTTP checks cannot prove every visual interaction. Public API verification is recorded separately once deployed. Known unsupported inputs include scanned PDFs, complex table layout and non-count price bases such as kg/metres.
 
-The test suite checks ingestion, redaction, source identity, runbook/log separation, lexical retrieval, unknown evidence, citation rejection, event correlation, digest stability, input limits, CLI parameters and worker lifecycle. The deterministic fixture evaluation has 14 explicit assertions over synthetic scenarios and negative cases.
+## Local measurement, 2026-09-11
 
-Language tests cover explicit-link precedence, Chinese fixtures, report localization preserving evidence/quotes/digests/model claims, model language instructions preserving citation constraints, and CLI language-flag parsing.
+9 API/calculation tests and 4 parser tests pass; typecheck, lint and production build pass. All checked fields matched in the 8 normal quotation cases. The instruction-injection case still had one wrong price and triggers a document-instruction warning. These figures are not production accuracy.
 
-Worker-lifecycle tests use a controllable worker substitute. They verify that completion, cancellation, malformed JSON and worker failure settle the correct Promise and terminate the owned worker. **They do not measure WebGPU execution, model quality, GPU memory reclamation, or browser download caching.**
-
-The local-model adapter builds against the installed runtime and references a model in its catalog. A real end-to-end model download/inference run and cross-browser GPU validation have not been completed in this reference environment. Model output is therefore not presented as benchmarked. Unsupported hardware reports an error and preserves the deterministic analysis.
-
-WebMCP adapters have unit-level schema/state-transition checks. Live registration in a browser implementing the experimental WebMCP API has not been verified. Ordinary application use does not depend on WebMCP support.
-
-## Limits that matter
-
-- Synthetic rule fixtures are not evidence of incident root-cause accuracy on production data.
-- A valid citation verifies source identity and an exact quote, not entailment or truth.
-- Retrieval is lexical BM25, not semantic embeddings. It can miss paraphrases.
-- Source-type labels are supplied by the user; the app cannot independently authenticate a log's origin.
-- Prompt-injection detection and credential redaction are incomplete pattern-based aids.
-- Model context is bounded by selected lines/characters; unusual tokenization can still exceed the model's token window and fail cleanly.
-- The small model may return no usable hypotheses. The evidence report remains useful and exportable.
-- File input limits are meant for a focused incident window, not bulk telemetry ingestion.
-
-Future model evaluations should record the exact model/runtime versions, hardware, prompt, inputs, generation settings, malformed-output rate, invalid-citation rate and human-labeled support/causality judgments. Do not collapse these into a single “accuracy” claim.
+| Case | Seconds | Field mismatches |
+|---|---:|---:|
+| sample-en | 42.1 | 0 |
+| sample-zh | 27.9 | 0 |
+| holdout-zh | 24.8 | 0 |
+| independent-moq-unit | 28.9 | 0 |
+| ambiguous-dollar | 22.8 | 0 |
+| untrusted-instruction | 33.4 | 1 |
+| table-csv | 51.7 | 0 |
+| table-xlsx | 39.0 | 0 |
+| text-pdf | 34.3 | 0 |

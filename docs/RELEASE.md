@@ -1,11 +1,5 @@
-Incident Weave v0.1.0 introduces a free, local-first workbench for investigating AI application failures.
+# Release scope
 
-- Import logs and runbooks; inspect source-linked observations and event correlations.
-- Generate tentative hypotheses with an optional on-device open model, without paid APIs.
-- Validate citations, cancel model workers, and export Markdown/JSON reports.
-- Reproduce behavior through the CLI, synthetic fixtures and automated tests.
-- Read the Chinese project/interview guide for design tradeoffs and limitations.
+The current quotation-review application replaces the initial static incident-investigation prototype. Git history preserves the earlier work. The web deployment now includes a server API, database migrations and blob storage; the model worker is a separate local process.
 
-This is an early release. Deterministic tests do not establish model reasoning accuracy. Real WebGPU inference and cross-browser GPU behavior are not yet covered by this release's validation record.
-
-Demo: https://incident-weave.loyal-lamb-5637.chatgpt.site
+Release checks are recorded in VALIDATION.md and the machine-readable validation directory. A successful frontend build is not sufficient evidence of inference, storage isolation or public reachability. No real procurement adoption or measured business savings is claimed.

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,21 +18,29 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "allowImportingTsExtensions": true
   },
   "include": [
-    "app/page.tsx",
     "app/main.tsx",
     "core/**/*.ts",
     "tests/**/*.ts",
-    "scripts/investigate.ts",
-    "scripts/evaluate.ts",
     "lib/**/*.ts",
     "vite.config.ts",
-    "build/sites-vite-plugin.ts"
+    "build/sites-vite-plugin.ts",
+    "app/quotes.tsx",
+    "server/**/*.ts",
+    "db/**/*.ts",
+    "drizzle.config.ts"
   ],
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

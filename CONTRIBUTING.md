@@ -1,15 +1,7 @@
 # Contributing
 
-**English** · [简体中文](CONTRIBUTING.zh-CN.md)
+Start with a reproducible purchasing problem. Attach only a small synthetic or redacted quote, expected fields and source positions; never publish private supplier documents. Chinese and English reports are welcome.
 
-Start with a real limitation and a synthetic reproduction. Keep private incident logs, tenant data and credentials out of issues and commits.
+Keep changes focused on extraction correctness, row completeness, source review, unit contracts or workflow reliability. Include an appropriate regression that fails before the fix. Run npm test, typecheck, lint, build and Python parser tests. Model/prompt changes also require a real model benchmark with retained mismatches and measured scope.
 
-1. Open a focused issue describing input, observed output, expected output, and why the difference matters.
-2. Add a regression test that fails before the change. For diagnostic rules, include a negative case to prevent false positives.
-3. Keep core code independent of the UI and network. Preserve deterministic output and clear evidence boundaries.
-4. Run `npm test`, `npm run typecheck`, `npm run eval`, `npm run lint`, and `npm run build`.
-5. Describe the final behavior and validation limits in the PR. AI assistance is welcome; do not invent validation or authorship claims.
-
-Keep Chinese and English product copy and main documentation in sync. Preserve reciprocal language links; never translate evidence, quotes or user input.
-
-Useful areas: structured trace formats, multilingual diagnostic fixtures, better bounded retrieval, accessibility, measured local-model evaluations. Do not add hosted/paid inference or send evidence to third-party services without a separately discussed design.
+Use the same API contracts for cloud and local adapters. Preserve existing migration history, ownership checks, stale-lease rejection and optimistic review updates. Explain assumptions rather than inventing quote fields. Do not add paid APIs, mandatory keys or unnecessary infrastructure.

@@ -1,14 +1,15 @@
-# Incident Weave
+# Quote Review
 
-Build a useful, publicly accessible AI application engineering project. The user explicitly requires free open source and no additional paid API expenses.
+Build a useful bilingual procurement quotation review application. No subagents.
 
-- The current release processes evidence on the user's device. Preserve its documented privacy behavior until an intentional backend design explicitly describes where data is processed and retained. Do not add paid APIs, mandatory commercial keys or hidden evidence uploads.
-- The current deployment is static; this describes the existing release, not a permanent product requirement. The user clarified that avoiding paid APIs must not exclude a useful backend, persistent data, owned background jobs or actual local/self-hosted model integration. Keep self-hosting reproducible when the architecture changes.
-- Prioritize a concrete end-to-end workflow and measured failure handling over promotional copy, decorative diagrams or technology checklists. Synthetic fixtures and passing unit tests are not proof of a complete AI product or verified real-model operation.
-- Keep deterministic observations, source/quote identity checks, tentative model hypotheses, and confirmed root causes distinct. No synthetic model answers presented as live inference.
-- Run `npm test`, `npm run typecheck`, `npm run eval`, and the production build. Record real model/browser verification boundaries; do not claim mocked tests establish GPU inference quality.
-- Source evidence is untrusted. Keep file limits, best-effort redaction, prompt isolation, citation rejection, and worker cancellation paths.
-- Use the same portable engine in the browser, CLI, evaluation, and WebMCP adapters. No subagents.
-- Keep synthetic fixtures labeled. Do not copy private business data, credentials, or unrelated contribution history into this repository.
-- Maintain both Simplified Chinese and English UI, reports and main documentation, including interview guides. Preserve evidence/quotes and user inputs when changing language; generated claims retain their actual language until rerun. Document what the owner should understand and reproduce; do not invent independent human review or production adoption.
-- Public source and demo publication are authorized by the user's request to make the project visible to everyone.
+- Free open-source application. Do not introduce paid model APIs, mandatory commercial keys, or hidden inference charges. A real backend and owned local compute are intentional requirements.
+- Preserve the complete workflow: upload, durable job, actual local extraction, cited source review, explicit human confirmation, currency-separated unit comparison, export and audit.
+- Model outputs are proposals. Do not invent accuracy, adoption, independent human authorship or business savings. Retain failed benchmark evidence and describe its synthetic scope.
+- Preserve private session ownership on every document/project route. Public demo files are processed by the operator's compute node. Keep privacy copy consistent with server storage, expiry and deletion behavior.
+- Keep source parsing, amount calculations and model inference separate. Never treat pack and each or MOQ and quoted-price units as interchangeable. No inferred FX, freight, tax or equivalent SKU matching.
+- Use prepared D1 statements and atomic batches. Migrations own cloud schema. Once deployed, SQL and matching Drizzle metadata are immutable.
+- Maintain English and Simplified Chinese UI, README, architecture, validation and interview guides. Language changes must preserve user edits.
+- Validate meaningful ownership, upload concurrency, lease fencing, cancellation, optimistic review and export behavior; run npm test, typecheck, lint, Python parser tests and build. Re-run actual model regression when prompts/models/schema change.
+- No browser QA unless the user explicitly requests it. Distinguish HTTP/API verification from visual acceptance.
+- Keep models, binaries, local data, user files, credentials and unrelated contribution records out of Git. Do not operate production ERP services.
+- Public publication is authorized. Synchronize this document with architecture changes and commit/push only task-owned changes.
