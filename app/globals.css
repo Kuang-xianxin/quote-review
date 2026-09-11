@@ -1017,3 +1017,63 @@ footer a {
     font-size: 9px;
   }
 }
+
+/* Both languages share one workbench; Chinese prose needs natural spacing. */
+.language-switch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid #ccd4c9;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.language-switch button {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #345441;
+  cursor: pointer;
+}
+.language-switch button[aria-pressed="true"] {
+  color: #fff;
+  background: #254c3a;
+}
+.language-switch button:focus-visible {
+  outline: 2px solid #254c3a;
+  outline-offset: 3px;
+}
+html[lang="zh-CN"] body {
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+html[lang="zh-CN"] .hero h1 {
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+html[lang="zh-CN"] .eyebrow {
+  letter-spacing: 0.08em;
+}
+html[lang="zh-CN"] .finding p {
+  line-height: 1.85;
+}
+.topbar nav {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ai-progress details {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .topbar {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .topbar nav {
+    gap: 12px;
+  }
+  .language-switch button {
+    min-height: 36px;
+  }
+}

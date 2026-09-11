@@ -1,5 +1,7 @@
 # Architecture and design decisions
 
+**English** · [简体中文](ARCHITECTURE.zh-CN.md)
+
 Incident Weave is a static application with a portable TypeScript analysis core. There is no evidence-processing server. UI, command line, evaluation and agent-tool adapters call the same implementation.
 
 ```mermaid
@@ -29,6 +31,8 @@ flowchart LR
 **Cancellation has an owner.** Each inference attempt owns one Worker. Cancel, worker error, invalid response, successful completion or the ten-minute total budget terminates that worker. The earlier evidence report is immutable from the model adapter's perspective. The UI prevents competing runs and ignores stale completion after a view change.
 
 **No background billing.** The public build is static. Importing evidence, retrieval, diagnostics and report export do not need a server or model. Model download requires an explicit click, and generation happens on the visitor's GPU. There is no fallback to a paid API.
+
+**Language is presentation, not evidence rewriting.** `core/i18n.ts` selects a locale and translates application-owned copy/templates. `core/presentation.ts` localizes report narration without changing source names, physical lines, evidence IDs, exact quotes, user input, machine categories, digests or model claims. Switching languages keeps the current investigation. A new model run requests the chosen language while requiring verbatim evidence quotes; language compliance is not guaranteed. Unknown runtime diagnostics remain verbatim. JSON exports add a `language` field for the narration.
 
 **Reproducible artifacts.** The SHA-256 digest covers the redacted evidence records and redacted question. Identical inputs have the same digest even though each run has a new UUID/timestamp. It is an integrity fingerprint, not an authenticity signature. JSON contains observations, selected context, exact quotes and measured stage times.
 

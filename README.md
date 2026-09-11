@@ -1,7 +1,9 @@
 <p align="center"><img src="public/favicon.svg" width="58" alt="Incident Weave" /></p>
+
+**English** · [简体中文](README.zh-CN.md)
 <h1 align="center">Incident Weave</h1>
 <p align="center"><strong>Something broke. Follow the evidence.</strong><br/>Local-first investigation for AI application failures. No API keys. No subscriptions.</p>
-<p align="center"><a href="https://incident-weave.loyal-lamb-5637.chatgpt.site">Try the workbench</a> · <a href="docs/INTERVIEW.zh-CN.md">中文项目讲解</a> · <a href="docs/ARCHITECTURE.md">Architecture</a> · <a href="docs/VALIDATION.md">Validation & limits</a></p>
+<p align="center"><a href="https://incident-weave.loyal-lamb-5637.chatgpt.site">Try the workbench</a> · <a href="docs/INTERVIEW.en.md">Interview guide</a> · <a href="docs/ARCHITECTURE.md">Architecture</a> · <a href="docs/VALIDATION.md">Validation & limits</a></p>
 
 An agent times out. Its background task is still running. A search tool returns HTTP 200 but no context. A retry loop ignores `Retry-After`. A generic explanation is easy; a defensible investigation needs the actual evidence.
 
@@ -16,6 +18,12 @@ Incident Weave turns logs and runbooks into **source-linked observations, inspec
 5. Optionally open **Local AI** and download the model. This is an explicit, separate action.
 
 The sample cases are synthetic and labeled as such. You can replace them with your own `.log`, `.txt`, `.md`, `.json`, `.jsonl`, or `.csv` files. JSON/CSV are treated as line-oriented text in v0.1, not parsed as a complete telemetry schema. Markdown files are reference material and cannot produce runtime observations.
+
+## Chinese and English
+
+Use **中文 / English** in the top bar, or open [Chinese](https://incident-weave.loyal-lamb-5637.chatgpt.site/?lang=zh-CN) / [English](https://incident-weave.loyal-lamb-5637.chatgpt.site/?lang=en) directly. Language selection prefers the URL, then a saved device preference, then a supported browser language, with English as the fallback.
+
+The UI, app-owned report narration, Markdown/JSON exports and main documentation support both languages. Switching preserves the current question, evidence and report. Reselecting a sample loads its question and runbook in the current language; runtime logs stay verbatim. Source quotes, field names, identifiers, fingerprints and user inputs are never translated. Existing model claims keep their actual language. A new local-model run requests the current language, but the small model may not comply. Unknown runtime diagnostics retain their original technical text. Cross-language model quality has not been benchmarked.
 
 ## What is implemented
 
@@ -61,10 +69,11 @@ npm run start
 
 ```sh
 npm run investigate -- samples/retry-storm.log samples/retry-storm.md
+npm run investigate -- samples/retry-storm.log --lang zh-CN
 npm run investigate -- samples/cancel-leak.log --question "What happened after cancellation?" --json
 ```
 
-The CLI runs deterministic analysis only. It reads explicitly named files and makes no network requests. Local model inference is a browser feature in v0.1.
+The CLI runs deterministic analysis only. Use `--lang en` (default) or `--lang zh-CN` for report narration. JSON includes a `language` field while machine-readable keys and evidence stay unchanged. It reads explicitly named files and makes no network requests. Local model inference is a browser feature in v0.1.
 
 ## Local AI: free, but not zero-resource
 

@@ -37,3 +37,19 @@ test("CLI fails usefully on missing files", () => {
   assert.notEqual(r.status, 0);
   assert.match(r.stderr, /ENOENT/);
 });
+
+test("CLI localizes output without treating the language flag as an input file", () => {
+  const r = cli(["--lang", "zh-CN", "samples/retry-storm.log", "--json"]);
+  assert.equal(r.status, 0, r.stderr);
+  const report = JSON.parse(r.stdout);
+  assert.equal(report.language, "zh-CN");
+  assert.match(report.findings[0].title, /限流/);
+  assert.ok(
+    report.evidence.some((e: { text: string }) =>
+      e.text.includes("status=429"),
+    ),
+  );
+  const invalid = cli(["samples/retry-storm.log", "--lang", "fr"]);
+  assert.notEqual(invalid.status, 0);
+  assert.match(invalid.stderr, /--lang requires/);
+});

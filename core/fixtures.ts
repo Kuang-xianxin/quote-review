@@ -1,4 +1,5 @@
 import type { Bundle } from "./engine.ts";
+import type { Locale } from "./i18n.ts";
 export type Case = {
   id: string;
   title: string;
@@ -61,12 +62,30 @@ Confirm terminal task events and pool.release by trace ID. A cancel request alon
     expected: ["cancellation", "work-after-cancel", "pool", "timeout"],
   },
 ];
-export function caseBundle(c: Case): Bundle {
+const chineseCases: Record<string, { question: string; runbook: string }> = {
+  "retry-storm": {
+    question: "客服 Agent 为什么多次重试后仍然失败？",
+    runbook:
+      "服务限流：收到 429 后，应遵守 Retry-After 再重试。\n重试预算：最多尝试 3 次，使用有界指数退避和随机抖动。\n运行截止时间应包含检索、模型调用、重试和清理。\n健康检查成功不代表某次 Agent 运行成功。",
+  },
+  "empty-context": {
+    question: "为什么检索没有为生成的回答提供证据？",
+    runbook:
+      "检索需要文档位于相同租户和索引版本下。\n上下文为空时应停止作答并请求更多证据。\n模型完成输出不代表回答正确。",
+  },
+  "cancel-leak": {
+    question: "取消请求和连接池超时后，应该检查什么？",
+    runbook:
+      "本次运行拥有查询任务，应在断开连接时取消并等待这些任务。\n即使调用方已取消，连接释放也必须完成。\n按 trace ID 确认任务终止事件和 pool.release。仅有取消请求并不足够。",
+  },
+};
+export function caseBundle(c: Case, locale: Locale = "en"): Bundle {
+  const copy = locale === "zh-CN" ? chineseCases[c.id] : undefined;
   return {
-    question: c.question,
+    question: copy?.question ?? c.question,
     sources: [
       { name: "runtime.log", text: c.logs, kind: "log" },
-      { name: "runbook.md", text: c.runbook, kind: "runbook" },
+      { name: "runbook.md", text: copy?.runbook ?? c.runbook, kind: "runbook" },
     ],
   };
 }

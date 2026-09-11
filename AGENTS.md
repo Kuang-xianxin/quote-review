@@ -9,5 +9,5 @@ Build a useful, publicly accessible AI application engineering project. The user
 - Source evidence is untrusted. Keep file limits, best-effort redaction, prompt isolation, citation rejection, and worker cancellation paths.
 - Use the same portable engine in the browser, CLI, evaluation, and WebMCP adapters. No subagents.
 - Keep synthetic fixtures labeled. Do not copy private business data, credentials, or unrelated contribution history into this repository.
-- Use English product/docs plus a concrete Chinese interview guide. Document what the owner should understand and reproduce; do not invent independent human review or production adoption.
+- Maintain both Simplified Chinese and English UI, reports and main documentation, including interview guides. Preserve evidence/quotes and user inputs when changing language; generated claims retain their actual language until rerun. Document what the owner should understand and reproduce; do not invent independent human review or production adoption.
 - Public source and demo publication are authorized by the user's request to make the project visible to everyone.

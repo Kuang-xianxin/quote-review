@@ -1,5 +1,6 @@
 import type { Report } from "./engine.ts";
 import { buildPrompt, validateHypotheses } from "./engine.ts";
+import type { Locale } from "./i18n.ts";
 
 export const LOCAL_MODEL = "Qwen2.5-0.5B-Instruct-q4f32_1-MLC";
 export type Progress = { progress: number; text: string };
@@ -9,6 +10,7 @@ export type RunAI = { result: Promise<Report["ai"]>; cancel: () => void };
 export function runLocalAI(
   report: Report,
   onProgress: (p: Progress) => void,
+  locale: Locale = "en",
 ): RunAI {
   const worker = new Worker(new URL("./model.worker.ts", import.meta.url), {
     type: "module",
@@ -59,7 +61,7 @@ export function runLocalAI(
       }
       if (msg.type === "complete") {
         try {
-          const prompt = buildPrompt(report);
+          const prompt = buildPrompt(report, locale);
           const { accepted, rejected } = validateHypotheses(
             JSON.parse(msg.text),
             prompt.evidence,
@@ -81,7 +83,7 @@ export function runLocalAI(
         }
       }
     };
-    const prompt = buildPrompt(report);
+    const prompt = buildPrompt(report, locale);
     worker.postMessage({
       model: LOCAL_MODEL,
       system: prompt.system,

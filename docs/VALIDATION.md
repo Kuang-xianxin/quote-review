@@ -1,8 +1,10 @@
 # Validation record and limits
 
+**English** · [简体中文](VALIDATION.zh-CN.md)
+
 Reference environment: Windows, Node.js 22.23.1, TypeScript 5.9.3. This record describes the v0.1 implementation, not a production service benchmark.
 
-The reference run on 2026-09-10 passed 30 automated tests, all 14 deterministic fixture assertions, TypeScript checking, lint, and the production build. See GitHub Actions for independent CI results.
+The bilingual update on 2026-09-11 passed 35 automated tests and all 14 deterministic fixture assertions. Both language homepages also passed React static rendering checks. See GitHub Actions for independent type checking, lint and production-build results. Static rendering is not browser interaction or GPU acceptance.
 
 ## Reproduce
 
@@ -17,6 +19,8 @@ npm run investigate -- samples/retry-storm.log samples/retry-storm.md --json
 ```
 
 The test suite checks ingestion, redaction, source identity, runbook/log separation, lexical retrieval, unknown evidence, citation rejection, event correlation, digest stability, input limits, CLI parameters and worker lifecycle. The deterministic fixture evaluation has 14 explicit assertions over synthetic scenarios and negative cases.
+
+Language tests cover explicit-link precedence, Chinese fixtures, report localization preserving evidence/quotes/digests/model claims, model language instructions preserving citation constraints, and CLI language-flag parsing.
 
 Worker-lifecycle tests use a controllable worker substitute. They verify that completion, cancellation, malformed JSON and worker failure settle the correct Promise and terminate the owned worker. **They do not measure WebGPU execution, model quality, GPU memory reclamation, or browser download caching.**
 

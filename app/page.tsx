@@ -48,11 +48,18 @@ import {
   type Citation,
   type Report,
 } from "@/core/engine";
+import {
+  LANGUAGE_KEY,
+  resolveLocale,
+  translate,
+  type Locale,
+} from "@/core/i18n";
+import { localizeReport } from "@/core/presentation";
 import type { RunAI } from "@/core/local-ai";
 import { registerInvestigationTools } from "@/core/webmcp";
 
 const REPO = "https://github.com/Kuang-xianxin/incident-weave";
-const initial = caseBundle(CASES[0]);
+
 function download(contents: string, name: string, type: string) {
   const url = URL.createObjectURL(new Blob([contents], { type }));
   const link = document.createElement("a");
@@ -62,7 +69,50 @@ function download(contents: string, name: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export default function Home() {
+export default function Home({
+  initialLocale,
+}: { initialLocale?: Locale } = {}) {
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (initialLocale) return initialLocale;
+    if (typeof window === "undefined") return "en";
+    let saved: string | null = null;
+    try {
+      saved = localStorage.getItem(LANGUAGE_KEY);
+    } catch {
+      /* Optional preference. */
+    }
+    return resolveLocale(window.location.search, saved, navigator.languages);
+  });
+  const t = (text: string, values?: Record<string, string | number>) =>
+    translate(locale, text, values);
+  const initial = caseBundle(CASES[0], locale);
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.title = `Incident Weave — ${translate(locale, "Follow the evidence.")}`;
+    const description = translate(
+      locale,
+      "Turn scattered logs into a clear investigation. Connect the signals, inspect every citation, and decide what to check next.",
+    );
+    for (const selector of [
+      'meta[name="description"]',
+      'meta[property="og:description"]',
+    ])
+      document.querySelector(selector)?.setAttribute("content", description);
+    document
+      .querySelector('meta[property="og:title"]')
+      ?.setAttribute("content", document.title);
+  }, [locale]);
+  function changeLanguage(next: Locale) {
+    setLocale(next);
+    try {
+      localStorage.setItem(LANGUAGE_KEY, next);
+    } catch {
+      /* Optional preference. */
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", next);
+    window.history.replaceState(null, "", url);
+  }
   const [sources, setSources] = useState<Bundle["sources"]>(initial.sources);
   const [question, setQuestion] = useState(initial.question);
   const [caseId, setCaseId] = useState(CASES[0].id);
@@ -126,9 +176,9 @@ export default function Home() {
     setSourceTab("0");
     const c = CASES.find((c) => c.id === id);
     const bundle = c
-      ? caseBundle(c)
+      ? caseBundle(c, locale)
       : {
-          question: "What failed, and what evidence should I check next?",
+          question: t("What failed, and what evidence should I check next?"),
           sources: [
             { name: "runtime.log", text: "", kind: "log" as const },
             { name: "runbook.md", text: "", kind: "runbook" as const },
@@ -250,7 +300,7 @@ export default function Home() {
     setAiProgress({ progress: 0, text: "Starting the local model worker…" });
     try {
       const { runLocalAI } = await import("@/core/local-ai");
-      aiRun.current = runLocalAI(current, setAiProgress);
+      aiRun.current = runLocalAI(current, setAiProgress, locale);
       const ai = await aiRun.current.result;
       if (generation.current === token) {
         const updated = { ...current, ai };
@@ -291,7 +341,7 @@ export default function Home() {
             selected === c.evidenceId ? "citation selected" : "citation"
           }
           onClick={() => setSelected(c.evidenceId)}
-          aria-label={`Inspect evidence ${c.evidenceId}`}
+          aria-label={t("Inspect evidence {id}", { id: c.evidenceId })}
         >
           <FileText size={11} />
           {c.evidenceId}
@@ -311,67 +361,97 @@ export default function Home() {
           <b>LAB</b>
         </a>
         <nav>
+          <div
+            className="language-switch"
+            role="group"
+            aria-label="Language / 语言"
+          >
+            <button
+              type="button"
+              lang="zh-CN"
+              aria-pressed={locale === "zh-CN"}
+              onClick={() => changeLanguage("zh-CN")}
+            >
+              中文
+            </button>
+            <button
+              type="button"
+              lang="en"
+              aria-pressed={locale === "en"}
+              onClick={() => changeLanguage("en")}
+            >
+              English
+            </button>
+          </div>
           <span className="privacy">
-            <i /> Runs on your device
+            <i /> {t("Runs on your device")}{" "}
           </span>
           <a href={REPO} target="_blank" rel="noreferrer">
-            Source <ArrowUpRight size={13} />
+            {" "}
+            {t("Source")} <ArrowUpRight size={13} />
           </a>
         </nav>
       </header>
       <section className="hero">
         <div>
-          <p className="eyebrow">LOCAL INTELLIGENCE. TRACEABLE ANSWERS.</p>
+          <p className="eyebrow">
+            {t("LOCAL INTELLIGENCE. TRACEABLE ANSWERS.")}
+          </p>
           <h1>
-            Something broke.
-            <br />
-            <em>Follow the evidence.</em>
+            {" "}
+            {t("Something broke.")} <br />
+            <em>{t("Follow the evidence.")}</em>
           </h1>
           <p className="intro">
-            Turn scattered logs into a clear investigation. Connect the signals,
-            inspect every citation, and decide what to check next.
+            {" "}
+            {t(
+              "Turn scattered logs into a clear investigation. Connect the signals, inspect every citation, and decide what to check next.",
+            )}{" "}
           </p>
           <div className="hero-facts">
             <span>
-              <LockKeyhole size={15} /> No evidence uploads
+              <LockKeyhole size={15} /> {t("No evidence uploads")}{" "}
             </span>
             <span>
-              <Cpu size={15} /> No API bill
+              <Cpu size={15} /> {t("No API bill")}{" "}
             </span>
             <span>
-              <FileText size={15} /> Traceable citations
+              <FileText size={15} /> {t("Traceable citations")}{" "}
             </span>
           </div>
         </div>
         <div className="signal-art" aria-hidden="true">
           <div className="signal-node n1">
-            Runtime logs <b>→</b>
+            {" "}
+            {t("Runtime logs")} <b>→</b>
           </div>
           <div className="signal-node n2">
-            Tool traces <b>→</b>
+            {" "}
+            {t("Tool traces")} <b>→</b>
           </div>
           <div className="signal-node n3">
-            Runbook <b>→</b>
+            {" "}
+            {t("Runbook")} <b>→</b>
           </div>
           <svg viewBox="0 0 440 230">
             <path d="M155 44 C250 44 190 115 295 115 M155 115H295 M155 186C250 186 190 115 295 115" />
             <circle cx="296" cy="115" r="47" />
             <circle className="signal-core" cx="296" cy="115" r="31" />
           </svg>
-          <span className="signal-label">One evidence trail.</span>
+          <span className="signal-label">{t("One evidence trail.")}</span>
         </div>
       </section>
       <section className="bench" id="workbench">
         <div className="bench-header">
           <div>
-            <span className="eyebrow">YOUR EVIDENCE. YOUR DEVICE.</span>
-            <h2>The incident workbench</h2>
+            <span className="eyebrow">{t("YOUR EVIDENCE. YOUR DEVICE.")}</span>
+            <h2>{t("The incident workbench")}</h2>
           </div>
-          <span className="badge">Free & open source</span>
+          <span className="badge">{t("Free & open source")}</span>
         </div>
         <div className="bench-grid">
           <aside className="case-panel">
-            <span className="eyebrow">TRY A SYNTHETIC CASE</span>
+            <span className="eyebrow">{t("TRY A SYNTHETIC CASE")}</span>
             {CASES.map((c, i) => (
               <button
                 key={c.id}
@@ -381,8 +461,8 @@ export default function Home() {
               >
                 <span className="case-number">0{i + 1}</span>
                 <div>
-                  <strong>{c.title}</strong>
-                  <p>{c.subtitle}</p>
+                  <strong>{t(c.title)}</strong>
+                  <p>{t(c.subtitle)}</p>
                 </div>
                 {caseId === c.id && <ChevronRight size={16} />}
               </button>
@@ -393,26 +473,28 @@ export default function Home() {
               onClick={() => chooseCase("custom")}
             >
               <Plus size={16} />
-              <strong>Your own evidence</strong>
+              <strong>{t("Your own evidence")}</strong>
             </button>
             <div className="local-note">
               <LockKeyhole size={18} />
               <p>
-                Analysis runs here. Logs never go to our server. Local AI
-                downloads model files only when you ask.
+                {" "}
+                {t(
+                  "Analysis runs here. Logs never go to our server. Local AI downloads model files only when you ask.",
+                )}{" "}
               </p>
               <button
                 className="text-button"
                 onClick={runChecks}
                 disabled={disabled}
               >
-                <FlaskConical size={13} /> Run fixture evaluation
+                <FlaskConical size={13} /> {t("Run fixture evaluation")}{" "}
               </button>
-              {checks && <p role="status">{checks}</p>}
+              {checks && <p role="status">{t(checks)}</p>}
             </div>
             {history.length > 0 && (
               <div className="local-history">
-                <span className="eyebrow">SAVED ON THIS DEVICE</span>
+                <span className="eyebrow">{t("SAVED ON THIS DEVICE")}</span>
                 {history.map((h) => (
                   <button
                     key={h.id}
@@ -432,22 +514,25 @@ export default function Home() {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button className="text-button" disabled={disabled}>
-                      Clear saved reports
+                      {" "}
+                      {t("Clear saved reports")}{" "}
                     </button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Clear reports saved on this device?
+                        {" "}
+                        {t("Clear reports saved on this device?")}{" "}
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        Your current investigation and exported files stay
-                        available. The saved history will be removed from this
-                        browser.
+                        {" "}
+                        {t(
+                          "Your current investigation and exported files stay available. The saved history will be removed from this browser.",
+                        )}{" "}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Keep reports</AlertDialogCancel>
+                      <AlertDialogCancel>{t("Keep reports")}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => {
                           try {
@@ -460,7 +545,8 @@ export default function Home() {
                           }
                         }}
                       >
-                        Clear history
+                        {" "}
+                        {t("Clear history")}{" "}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -470,13 +556,13 @@ export default function Home() {
           </aside>
           <div className="editor-panel">
             <div className="editor-label">
-              <strong>Evidence bundle</strong>
+              <strong>{t("Evidence bundle")}</strong>
               <button
                 className="secondary small"
                 onClick={() => fileInput.current?.click()}
                 disabled={disabled}
               >
-                <Upload size={13} /> Import files
+                <Upload size={13} /> {t("Import files")}{" "}
               </button>
               <input
                 className="sr-only"
@@ -485,11 +571,12 @@ export default function Home() {
                 accept=".log,.txt,.md,.json,.jsonl,.csv"
                 ref={fileInput}
                 onChange={(e) => void importFiles(e.target.files)}
-                aria-label="Import local evidence files"
+                aria-label={t("Import local evidence files")}
               />
             </div>
             <label className="question-label" htmlFor="question">
-              What are you investigating?
+              {" "}
+              {t("What are you investigating?")}{" "}
             </label>
             <input
               id="question"
@@ -515,16 +602,16 @@ export default function Home() {
                 <TabsContent key={i} value={String(i)}>
                   <textarea
                     className="log-preview evidence-input"
-                    aria-label={`Edit ${s.name}`}
+                    aria-label={t("Edit {name}", { name: s.name })}
                     spellCheck={false}
                     value={s.text}
                     maxLength={LIMITS.bytes}
                     disabled={disabled}
-                    placeholder={
+                    placeholder={t(
                       s.kind === "runbook"
                         ? "Paste the relevant runbook or operational notes…"
-                        : "Paste timestamped logs, JSONL traces, or a failure transcript…"
-                    }
+                        : "Paste timestamped logs, JSONL traces, or a failure transcript…",
+                    )}
                     onChange={(e) => {
                       invalidate();
                       setCaseId("custom");
@@ -537,19 +624,23 @@ export default function Home() {
                   />
                   <div className="source-footnote">
                     <span>
-                      {s.kind === "runbook"
-                        ? "Reference material · not runtime evidence"
-                        : "Runtime evidence · treated as untrusted data"}
+                      {t(
+                        s.kind === "runbook"
+                          ? "Reference material · not runtime evidence"
+                          : "Runtime evidence · treated as untrusted data",
+                      )}
                     </span>
-                    <span>{s.text.split(/\r?\n/).length} lines</span>
+                    <span>
+                      {s.text.split(/\r?\n/).length} {t("lines")}
+                    </span>
                   </div>
                 </TabsContent>
               ))}
             </Tabs>
             <div className="editor-bottom">
               <span>
-                <i className="status-dot" /> Evidence analysis · deterministic,
-                no LLM
+                <i className="status-dot" />{" "}
+                {t("Evidence analysis · deterministic, no LLM")}{" "}
               </span>
               <button
                 className="primary"
@@ -561,7 +652,7 @@ export default function Home() {
                 onClick={() => void run().catch(() => {})}
               >
                 <Play size={15} />
-                {busy ? "Analyzing…" : "Investigate"}
+                {t(busy ? "Analyzing…" : "Investigate")}
               </button>
             </div>
             <label className="remember">
@@ -570,32 +661,36 @@ export default function Home() {
                 disabled={disabled}
                 onCheckedChange={(value) => setRemember(value === true)}
               />{" "}
-              Keep redacted reports on this device (up to 5)
+              {t("Keep redacted reports on this device (up to 5)")}{" "}
             </label>
           </div>
         </div>
       </section>
       {error && (
         <div className="notice" role="alert">
-          <span>{error}</span>
-          <button aria-label="Dismiss message" onClick={() => setError("")}>
+          <span>{t(error)}</span>
+          <button
+            aria-label={t("Dismiss message")}
+            onClick={() => setError("")}
+          >
             <X size={15} />
           </button>
         </div>
       )}
       {report ? (
-        <section className="results" aria-label="Investigation report">
+        <section className="results" aria-label={t("Investigation report")}>
           <div className="result-heading">
             <div>
-              <p className="eyebrow">EVIDENCE BEFORE EXPLANATIONS</p>
+              <p className="eyebrow">{t("EVIDENCE BEFORE EXPLANATIONS")}</p>
               <h2>
-                {report.findings.length} observations. A clearer next step.
+                {report.findings.length}{" "}
+                {t("observations. A clearer next step.")}{" "}
               </h2>
               <p className="report-question">{report.question}</p>
               <p>
-                {report.evidence.length} evidence lines ·{" "}
-                {report.retrieved.length} retrieved · {report.redactions}{" "}
-                redactions ·{" "}
+                {report.evidence.length} {t("evidence lines ·")}{" "}
+                {report.retrieved.length} {t("retrieved ·")} {report.redactions}{" "}
+                {t("redactions ·")}{" "}
                 <span title={report.digest}>
                   SHA-256 {report.digest.slice(0, 10)}
                 </span>
@@ -606,7 +701,7 @@ export default function Home() {
                 className="secondary"
                 onClick={() =>
                   download(
-                    toMarkdown(report),
+                    toMarkdown(report, locale),
                     "incident-weave-report.md",
                     "text/markdown;charset=utf-8",
                   )
@@ -618,7 +713,11 @@ export default function Home() {
                 className="secondary"
                 onClick={() =>
                   download(
-                    JSON.stringify(report, null, 2),
+                    JSON.stringify(
+                      { ...localizeReport(report, locale), language: locale },
+                      null,
+                      2,
+                    ),
                     "incident-weave-report.json",
                     "application/json",
                   )
@@ -633,18 +732,22 @@ export default function Home() {
               <Tabs value={resultTab} onValueChange={setResultTab}>
                 <TabsList variant="line" className="result-tabs">
                   <TabsTrigger value="observations">
-                    Observations <span>{report.findings.length}</span>
+                    {" "}
+                    {t("Observations")} <span>{report.findings.length}</span>
                   </TabsTrigger>
                   <TabsTrigger value="hypotheses">
-                    Local AI{" "}
+                    {" "}
+                    {t("Local AI")}{" "}
                     {report.ai && <span>{report.ai.hypotheses.length}</span>}
                   </TabsTrigger>
-                  <TabsTrigger value="trace">Run trace</TabsTrigger>
+                  <TabsTrigger value="trace">{t("Run trace")}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="observations">
                   <p className="mode-caption">
-                    Rule-based signals from your logs. They establish
-                    observations, not a confirmed root cause.
+                    {" "}
+                    {t(
+                      "Rule-based signals from your logs. They establish observations, not a confirmed root cause.",
+                    )}{" "}
                   </p>
                   {report.findings.map((f, i) => (
                     <article className="finding" key={f.id}>
@@ -652,16 +755,16 @@ export default function Home() {
                         <span className="finding-index">
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <h3>{f.title}</h3>
+                        <h3>{t(f.title)}</h3>
                         <span className="source-linked">
-                          <Check size={11} /> Source-linked
+                          <Check size={11} /> {t("Source-linked")}{" "}
                         </span>
                       </div>
-                      <p>{f.detail}</p>
+                      <p>{t(f.detail)}</p>
                       {citationButtons(f.citations)}
                       <div className="next-check">
-                        <span>NEXT CHECK</span>
-                        <p>{f.nextCheck}</p>
+                        <span>{t("NEXT CHECK")}</span>
+                        <p>{t(f.nextCheck)}</p>
                       </div>
                     </article>
                   ))}
@@ -670,57 +773,69 @@ export default function Home() {
                   <div className="ai-intro">
                     <Cpu size={25} />
                     <h3>
-                      A second pair of eyes.
-                      <br />
-                      On your own device.
+                      {" "}
+                      {t("A second pair of eyes.")} <br />{" "}
+                      {t("On your own device.")}{" "}
                     </h3>
                     <p>
-                      An optional small language model can propose hypotheses
-                      using the retrieved evidence. No API key, account, or
-                      per-request fee.
+                      {" "}
+                      {t(
+                        "An optional small language model can propose hypotheses using the retrieved evidence. No API key, account, or per-request fee.",
+                      )}{" "}
                     </p>
                     <p className="mode-caption">
-                      Each quote is checked against its source. A matching quote
-                      does not prove the hypothesis is correct.
+                      {" "}
+                      {t(
+                        "Each quote is checked against its source. A matching quote does not prove the hypothesis is correct.",
+                      )}{" "}
                     </p>
                     <Dialog open={aiDialog} onOpenChange={setAiDialog}>
                       <DialogTrigger asChild>
                         <button className="primary" disabled={disabled}>
                           <Cpu size={15} />
-                          {report.ai ? "Run local AI again" : "Enable local AI"}
+                          {t(
+                            report.ai
+                              ? "Run local AI again"
+                              : "Enable local AI",
+                          )}
                         </button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent closeLabel={t("Close")}>
                         <DialogHeader>
-                          <DialogTitle>Run AI on this device</DialogTitle>
+                          <DialogTitle>
+                            {t("Run AI on this device")}
+                          </DialogTitle>
                           <DialogDescription>
-                            Downloads an open model from Hugging Face and its
-                            runtime files. Your evidence is processed locally
-                            and is not sent to a model API.
+                            {" "}
+                            {t(
+                              "Downloads an open model from Hugging Face and its runtime files. Your evidence is processed locally and is not sent to a model API.",
+                            )}{" "}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="model-info">
                           <p>
-                            <strong>Model:</strong> Qwen2.5 0.5B Instruct,
-                            4-bit.
+                            <strong>{t("Model:")}</strong>{" "}
+                            {t("Qwen2.5 0.5B Instruct, 4-bit.")}{" "}
                           </p>
                           <p>
-                            <strong>Requirements:</strong> WebGPU and roughly
-                            1.1 GB of available GPU memory. The initial model
-                            download is several hundred MB and may take a few
-                            minutes.
+                            <strong>{t("Requirements:")}</strong>{" "}
+                            {t(
+                              "WebGPU and roughly 1.1 GB of available GPU memory. The initial model download is several hundred MB and may take a few minutes.",
+                            )}{" "}
                           </p>
                           <p>
-                            <strong>Limits:</strong> Small models can miss
-                            causes or produce incorrect hypotheses. Treat
-                            suggestions as leads for investigation.
+                            <strong>{t("Limits:")}</strong>{" "}
+                            {t(
+                              "Small models can miss causes or produce incorrect hypotheses. Treat suggestions as leads for investigation.",
+                            )}{" "}
                           </p>
                         </div>
                         <button
                           className="primary"
                           onClick={() => void startAI()}
                         >
-                          <ArrowDownToLine size={15} /> Download & run locally
+                          <ArrowDownToLine size={15} />{" "}
+                          {t("Download & run locally")}{" "}
                         </button>
                       </DialogContent>
                     </Dialog>
@@ -728,12 +843,22 @@ export default function Home() {
                   {aiBusy && (
                     <div className="ai-progress" role="status">
                       <Progress value={aiProgress.progress * 100} />
-                      <p>{aiProgress.text}</p>
+                      <p>
+                        {t(
+                          aiProgress.progress >= 1
+                            ? "Model ready. Generating hypotheses on your device…"
+                            : "Loading the model on this device…",
+                        )}
+                      </p>
+                      <details>
+                        <summary>{t("Runtime details")}</summary>
+                        <p>{aiProgress.text}</p>
+                      </details>
                       <button
                         className="secondary"
                         onClick={() => aiRun.current?.cancel()}
                       >
-                        <Square size={12} /> Cancel local AI
+                        <Square size={12} /> {t("Cancel local AI")}{" "}
                       </button>
                     </div>
                   )}
@@ -741,30 +866,39 @@ export default function Home() {
                     <>
                       <p className="mode-caption">
                         {report.ai.model} ·{" "}
-                        {(report.ai.durationMs / 1000).toFixed(1)} seconds
-                        including initialization
+                        {(report.ai.durationMs / 1000).toFixed(1)}{" "}
+                        {t("seconds including initialization")}{" "}
                       </p>
                       {report.ai.hypotheses.length === 0 && (
                         <div className="notice">
-                          No hypothesis passed citation validation. The
-                          observations above remain available.
+                          {" "}
+                          {t(
+                            "No hypothesis passed citation validation. The observations above remain available.",
+                          )}{" "}
                         </div>
                       )}
                       {report.ai.hypotheses.map((h, i) => (
                         <article className="finding hypothesis" key={i}>
-                          <span className="badge">Unconfirmed hypothesis</span>
+                          <span className="badge">
+                            {t("Unconfirmed hypothesis")}
+                          </span>
+                          <p className="mode-caption">
+                            {t(
+                              "Generated hypotheses keep their original language. Run local AI again to request the current language.",
+                            )}
+                          </p>
                           <h3>{h.title}</h3>
                           <p>{h.explanation}</p>
                           {citationButtons(h.citations)}
                           <div className="next-check">
-                            <span>NEXT CHECK</span>
+                            <span>{t("NEXT CHECK")}</span>
                             <p>{h.nextCheck}</p>
                           </div>
                         </article>
                       ))}
                       {report.ai.rejected.map((r, i) => (
                         <p className="validation-note" key={i}>
-                          {r}
+                          {t(r)}
                         </p>
                       ))}
                     </>
@@ -772,35 +906,38 @@ export default function Home() {
                 </TabsContent>
                 <TabsContent value="trace">
                   <p className="mode-caption">
-                    Actual stages of this run. Timings are measured locally; no
-                    simulated progress or model calls.
+                    {" "}
+                    {t(
+                      "Actual stages of this run. Timings are measured locally; no simulated progress or model calls.",
+                    )}{" "}
                   </p>
                   <ol className="trace-list">
-                    {report.trace.map((t, i) => (
+                    {report.trace.map((event, i) => (
                       <li key={i}>
                         <span className="trace-dot" />
                         <div>
-                          <strong>{t.stage}</strong>
-                          <p>{t.detail}</p>
+                          <strong>{t(event.stage)}</strong>
+                          <p>{t(event.detail)}</p>
                         </div>
-                        <code>{t.elapsedMs} ms</code>
+                        <code>{event.elapsedMs} ms</code>
                       </li>
                     ))}
                   </ol>
                   <p className="mode-caption">
-                    Input limits: 256 KB · 2,500 lines · 12 sources. SHA-256
-                    fingerprints the redacted evidence and question, not the
-                    identity of its author.
+                    {" "}
+                    {t(
+                      "Input limits: 256 KB · 2,500 lines · 12 sources. SHA-256 fingerprints the redacted evidence and question, not the identity of its author.",
+                    )}{" "}
                   </p>
                 </TabsContent>
               </Tabs>
               {report.warnings.length > 0 && (
                 <details className="warnings">
                   <summary>
-                    {report.warnings.length} evidence limitations
+                    {report.warnings.length} {t("evidence limitations")}{" "}
                   </summary>
                   {report.warnings.map((w, i) => (
-                    <p key={i}>{w}</p>
+                    <p key={i}>{t(w)}</p>
                   ))}
                 </details>
               )}
@@ -808,7 +945,7 @@ export default function Home() {
             <aside className="evidence-view">
               <div className="evidence-view-header">
                 <FileText size={15} />
-                <strong>Inspect the source</strong>
+                <strong>{t("Inspect the source")}</strong>
               </div>
               {evidence && (
                 <>
@@ -820,12 +957,14 @@ export default function Home() {
                   </div>
                   <pre className="source-quote">{evidence.text}</pre>
                   <p className="mode-caption">
-                    Exact redacted input. A citation match verifies this text
-                    exists; it does not verify the statement is true.
+                    {" "}
+                    {t(
+                      "Exact redacted input. A citation match verifies this text exists; it does not verify the statement is true.",
+                    )}{" "}
                   </p>
                 </>
               )}
-              <span className="eyebrow">RETRIEVED EVIDENCE</span>
+              <span className="eyebrow">{t("RETRIEVED EVIDENCE")}</span>
               <div className="retrieved-list">
                 {report.retrieved.map((e) => (
                   <button
@@ -841,7 +980,8 @@ export default function Home() {
                 ))}
                 {!report.retrieved.length && (
                   <p className="mode-caption">
-                    No query matches. Add more relevant evidence.
+                    {" "}
+                    {t("No query matches. Add more relevant evidence.")}{" "}
                   </p>
                 )}
               </div>
@@ -852,33 +992,37 @@ export default function Home() {
         <section className="empty-report">
           <Workflow size={22} />
           <div>
-            <strong>A useful answer starts with a trace.</strong>
+            <strong>{t("A useful answer starts with a trace.")}</strong>
             <p>
-              Choose a case or import your own evidence, then start an
-              investigation.
+              {" "}
+              {t(
+                "Choose a case or import your own evidence, then start an investigation.",
+              )}{" "}
             </p>
           </div>
           <ArrowUpRight size={18} />
         </section>
       )}
       <footer>
-        <span>Built for the moment after “it failed.”</span>
+        <span>{t("Built for the moment after “it failed.”")}</span>
         <div>
           <a
-            href={`${REPO}/blob/main/docs/INTERVIEW.zh-CN.md`}
+            href={`${REPO}/blob/main/docs/INTERVIEW.${locale === "zh-CN" ? "zh-CN" : "en"}.md`}
             target="_blank"
             rel="noreferrer"
           >
-            中文项目讲解 <ArrowUpRight size={11} />
+            {" "}
+            {t("Interview guide")} <ArrowUpRight size={11} />
           </a>
           <a
-            href={`${REPO}/blob/main/docs/ARCHITECTURE.md`}
+            href={`${REPO}/blob/main/docs/ARCHITECTURE${locale === "zh-CN" ? ".zh-CN" : ""}.md`}
             target="_blank"
             rel="noreferrer"
           >
-            How it works <ArrowUpRight size={11} />
+            {" "}
+            {t("How it works")} <ArrowUpRight size={11} />
           </a>
-          <span>MIT · No keys · No subscription</span>
+          <span>{t("MIT · No keys · No subscription")}</span>
         </div>
       </footer>
     </main>
