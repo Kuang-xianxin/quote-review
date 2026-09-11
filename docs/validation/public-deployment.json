@@ -1,0 +1,31 @@
+{
+  "base_url": "https://quote-review.loyal-lamb-5637.chatgpt.site",
+  "time": "2026-09-11T03:21:08Z",
+  "documents": [
+    {
+      "filename": "sample-zh.txt",
+      "model": "Qwen3-4B-Q4_K_M",
+      "duration_ms": 55392,
+      "fields_match": true,
+      "checks": []
+    },
+    {
+      "filename": "sample.pdf",
+      "model": "Qwen3-4B-Q4_K_M",
+      "duration_ms": 38720,
+      "fields_match": true,
+      "checks": []
+    }
+  ],
+  "comparison_prices": [
+    "2.00000000",
+    "2.40000000"
+  ],
+  "currency": "USD",
+  "audit_events": 2,
+  "anonymous_isolation": true,
+  "export": true,
+  "verification_workspace_deleted": true,
+  "source_commit": "5b5cd9556a8ccb93c138098fedbda451ea0379cd",
+  "assets_match_build": true
+}

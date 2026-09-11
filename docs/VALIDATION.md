@@ -25,3 +25,9 @@ No browser visual or interaction acceptance was performed. TypeScript/build and 
 | table-csv | 51.7 | 0 |
 | table-xlsx | 39.0 | 0 |
 | text-pdf | 34.3 | 0 |
+
+## Public API verification
+
+2026-09-11: an anonymous session uploaded a Chinese TXT and text PDF through the public API. Cloud file storage, durable jobs and the actual local model completed extraction in 55.4 s and 38.7 s; checked fields matched. Saved reviews produced prices of 2.00 and 2.40 USD per each, two audit events and a Chinese CSV export. A request without the session returned 401 for the private project. The verification project/files were deleted. Published JS/CSS hashes matched the build. See `validation/public-deployment.json`.
+
+The public compute worker currently runs in a task-managed session on the operator computer, not an installed boot service. Closing that session, sleep or network loss leaves new jobs queued. GitHub CI passed on Windows and Linux. No browser visual acceptance was performed.
